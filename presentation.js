@@ -3,7 +3,7 @@ var app = express();
 app.configure(function(){ app.use(express.static(__dirname + '/public')); });
 app.get("/",     function(req, res){ res.render('./index.jade'); });
 app.get("/ctrl", function(req, res){ res.render('./ctrl.jade'); });
-app.listen(8001, function(){});
+app.listen(80, function(){});
 
 var io = require('socket.io').listen(3000);
 io.sockets.on('connection', function(socket){
