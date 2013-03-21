@@ -1,0 +1,435 @@
+!!!
+html(lang="ja")
+  head
+    meta(charset='UTF-8')
+    title node.js で WebSoket 実装
+    include ../public/CSSslide.css
+    include ../public/javascripts/CSSslide.js
+    script(src="./javascripts/jquery.js")
+    script(src="./javascripts/socket.io.js")
+    script(type='text/javascript')
+      var socket = io.connect('http://'+document.domain+':3000');
+      // 接続後のイベント
+      socket.on('connect', function(){
+        console.log('get connect');
+      });
+      // 切断後のイベント(再接続している)
+      socket.on('disconnect', function() {
+        console.log('get disconnect');
+        socket = io.connect('http://'+document.domain+':3000');
+      });
+      // 'slide' イベント受信時の処理
+      socket.on('slide', function(message) {
+        console.log(message);
+        CSSslide.move(CSSslide.nowPage + (message == 'next' ? 1 : -1));
+      });
+  body
+    div
+      h1(style='text-align:center') node.js で WebSoket 実装
+    div(class='title')
+      h2 本日の目標
+      p node.js で WebSoket 使ったアプリを実装できるようになる
+
+    div(class='title')
+      h2 本日のメニュー
+      ul
+        li node.js おさらい
+        li WebSoketってなあに?
+        li WebSoket実践編
+
+    div(class='title')
+      h2 本日のメニュー
+      ul
+        li(style="color:#F00") node.js おさらい
+        li WebSoketってなあに?
+        li WebSoket実践編
+
+    div(class='title')
+      h2 node.js ってなんだっけ?
+      p JavaScriptを用いた Non-blocking I/O な環境
+
+    div(class='title')
+      h2 node.js ってなんだっけ?
+      p JavaScriptを用いた <font color="#F00">Non-blocking I/O </font>な環境
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p blocking-I/O
+      ul
+        li I/O が完了するまでスレッドがブロックされる
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p 例えばこんな実装(ruby)
+      pre
+        |  require 'open-uri'
+        |  p "1: # {Time.now}"
+        |  open("http://www.ruby-lang.org/") {|f|
+        |    p "2: # {Time.now}"
+        |  }
+        |  p "3: # {Time.now}"
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p アウトプット
+      ul
+        li 2が完了するまで、メインスレッドがブロックされる
+      pre
+        |  "1: 2013-03-10 11:58:16 +0900"
+        |  "2: 2013-03-10 11:58:19 +0900"
+        |  "3: 2013-03-10 11:58:19 +0900"
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p Non-blocking I/O(JavaScript)だと、<br> こんな実装になる
+      pre
+        | var http = require("http");
+        | console.log('1' + new Date());
+        | http.get({ host : 'www.google.com', path : '/'},
+        |           function(res){ console.log('2' + new Date()) });
+        | console.log('3' + new Date());
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p アウトプット
+      pre
+        | 1Sun Mar 10 2013 12:04:00 GMT+0900 (JST)
+        | 3Sun Mar 10 2013 12:04:00 GMT+0900 (JST)
+        | 2Sun Mar 10 2013 12:04:01 GMT+0900 (JST)
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p さっきと違って、先に3が実行されている
+
+    div(class='title')
+      h2 Non-blocking I/O ?
+      p Non-blocking-I/O の処理の流れ
+      ul
+        li I/Oが完了するのを待たずに、処理が進む
+        li メインの処理が終了したらイベント待ち状態になる
+        li I/Oが完了したらイベントが発生して処理が進む
+
+    div(class='title')
+      h2 Non-blocking I/O だと何が得なの ?
+      p 単一スレッドで、複数のリクエストを並行して捌くことができる
+      ul
+        li 1つのリクエストのI/Oが帰ってくる間に次のリクエストを捌ける
+
+    div(class='title')
+      h2 1スレッドで複数の処理を捌けると何が良いの?
+      p C10K問題への回答の1つになる
+      ul
+        li 1個1個の処理は軽くても、あまりに大量のスレッドが生成されるとマシン性能が圧迫される問題
+
+    div(class='title')
+      h2 node.js ってなんだっけ?
+      p <font color="#F00">JavaScript</font>を用いた Non-blocking I/O な環境
+
+    div(class='title')
+      h2 なんでJavaScriptなの?
+      p JavaScript 言語仕様が、node に都合が良かった
+      ul
+        li 標準入出力の仕様が無い
+        li 基本的にイベント駆動で実装していく
+
+    div(class='title')
+      h2 なんでJavaScriptなの?
+      p 副作用
+      ul
+        li 採用したV8エンジンが早かった
+        li JavaScriptのイベントで広報出来たので注目された
+
+    div(class='title')
+      h2 node に向いている処理
+      ul
+        li 処理は軽いけど大量のリクエストが来るWebAPI
+        li 何箇所にもアクセスして待ちが多く発生するクローラー
+        li WebSoketを使ったリアルタイムコミュニケーション(後述)
+
+    div(class='title')
+      h2 node に向いていない処理
+      p CPUパワーを食う重い処理
+        ul
+          li 関数ブロッキングは発生する
+      p 素直にC++で書いたりして、別プロセスで実行させて、nodeは結果だけ頂きましょう
+
+    div(class='title')
+      h2 本日のメニュー
+      ul
+        li node.js おさらい
+        li(style="color:#F00") WebSoketってなあに?
+        li WebSoket実践編
+
+    div(class='title')
+      h2 WebSoketってなあに?
+      p クライアント、サーバ間で双方向通信をするためのプロトコル
+      ul
+        li connectionを張りっぱなしにして、双方向通信を行う
+        li HTTPと比べると軽量
+        li 元々はHTML5の一部だっだけど、今は独自のモジュールに
+
+    div(class='title')
+      h2 双方向通信できると何が良いの?
+      p 今までサーバ側の更新を取得するには、クライアント側から通信が必要だった
+      p なので、リアルタイムにサーバ側の更新を取得しようとすると、
+      ui
+        li 何度も無駄なアクセスをすることに
+        li それでも、リアルタイム性は高くない
+
+    div(class='title')
+      h2 双方向通信できると何が良いの?
+      p 更新があった時にサーバ側からデータをpush出来れば、
+      ui
+        li 無駄が少ない
+        li リアルタイム性が高い
+
+    div(class='title')
+      h2 肝心のブラウザ間の対応状況は?
+      p 最新のブラウザは一通り対応している(Android以外)
+      ul
+        li RFCにまとまったのが2011年
+        li それ以前のブラウザは、ドラフトの仕様に準じたり未対応だったりまちまち
+      p 参考:
+        a(href="http://en.wikipedia.org/wiki/WebSocket#Browser_support") wikipedia(WebSocket#Browser_support)
+
+    div(class='title')
+      h2 SPDYもpush通信できるらしいよ?
+      p 目的が異なる
+      ul
+        li WebSocket → サーバ、クライアント間での双方向通信を可能にしたい
+        li SPDY → 従来のHTTP通信って遅いから早くしたい
+
+    div(class='title')
+      h2 SPDYもpush通信できるらしいよ?
+      p SPDYのpush通信は、htmlと一緒にリソースも送りつける為のもの
+      ul
+        li クライアントがhtmlを読んで、リソースを要求するより早い!
+
+    div(class='title')
+      h2 node じゃないと、WebSoket実装できないの?
+      p JavaとかRubyにもライブラリがあります
+      ul
+        li
+          | ただし、リアルタイムコミュニケーションの為に
+          | 大量の細かい通信が発生するので、イベント駆動のnodeと相性が良い
+
+    div(class='title')
+      h2 本日のメニュー
+      ul
+        li node.js おさらい
+        li WebSoketってなあに?
+        li(style="color:#F00") WebSoket実践編
+
+    div(class='title')
+      h2 soket.IO
+      p
+        a(href='http://socket.io/') http://socket.io/
+      p node.js の WebSoketライブラリ
+      ul
+        li WebSoketのブラウザ間のでの仕様の違いを埋めてくれる
+        li WebSoket未対応のブラウザでも、cometを使ったりして、対応してくれる
+
+    div(class='title')
+      h2 soket.IO のインストール
+      p nvm(Node Version Manager) を使って、node をインストール
+      pre
+        | $ curl https://raw.github.com/creationix/nvm/master/install.sh | sh
+        | $ nvm install v0.8.19
+
+    div(class='title')
+      h2 soket.IO のインストール
+      p npm(Node Packaged Modules) を使って、socket.IO をインストール
+      pre
+        | $ npm install socket.io
+      p カレントディレクトリに、node_modules/ ディレクトリがつくられて、そこにインストールされる
+
+    div(class='title')
+      h2 socket.IOの実装
+      p このプレゼンの実装を見ながら、APIを解説していきます
+
+    div(class='title')
+      h2 このプレゼンの WebSoket 部分のサーバ側実装
+      p こんな感じ
+      pre
+        | var io = require('socket.io').listen(3000);
+        | io.sockets.on('connection', function(socket){
+        |   socket.on('slide', function(message) {
+        |     socket.broadcast.emit('slide', message); 
+        |   });
+        | });
+
+    div(class='title')
+      h2 サーバ側実装
+      p いたってシンプル
+
+    div(class='title')
+      h2 サーバ側実装
+      p 何をしているか?
+
+    div(class='title')
+      h2 このプレゼンの WebSoket 部分のサーバ側実装
+      pre
+        | // socket用のサーバを3000版ポートで起動
+        | var io = require('socket.io').listen(3000);
+        | io.sockets.on('connection', function(socket){
+        |   socket.on('slide', function(message) { 
+        |     socket.broadcast.emit('slide', message); 
+        |   });
+        | });
+
+    div(class='title')
+      h2 このプレゼンの WebSoket 部分のサーバ側実装
+      pre
+        | var io = require('socket.io').listen(3000);
+        | // クライアントが接続してきた時の処理
+        | io.sockets.on('connection', function(socket){
+        |   socket.on('slide', function(message) {
+        |     socket.broadcast.emit('slide', message);
+        |   });
+        | });
+
+    div(class='title')
+      h2 このプレゼンの WebSoket 部分のサーバ側実装
+      pre
+        | var io = require('socket.io').listen(3000);
+        | io.sockets.on('connection', function(socket){
+        |   // クライアントからのイベントを受信する処理
+        |   socket.on('slide', function(message) {
+        |     socket.broadcast.emit('slide', message);
+        |   });
+        | });
+
+    div(class='title')
+      h2 このプレゼンの WebSoket 部分のサーバ側実装
+      pre
+        | var io = require('socket.io').listen(3000);
+        | io.sockets.on('connection', function(socket){
+        |   socket.on('slide', function(message) {
+        |     // 今回送ってきたクライアント以外にイベントを送信
+        |     socket.broadcast.emit('slide', message);
+        |   });
+        | });
+
+    div(class='title')
+      h2 socket.on と、socket.emit
+      ul
+        li socket.on   -> イベントの受信
+        li socket.emit -> イベントの送信(個別)
+        li socket.broadcast.emit -> イベントの送信(全体)
+
+    div(class='title')
+      h2 socket.on と、socket.emit
+      p いろんなサンプル
+      pre
+        |   // クライアントから 'slide' というイベントを受信
+        |   socket.on('slide', function(message) {
+        |     // 今回送ってきたクライアント以外にイベントを送信
+        |     socket.broadcast.emit('slide', message);
+        |     // 今回送ってきたクライアントにイベントを送信
+        |     socket.emit('slide', message);
+        |   });
+        |   // 受信処理以外で、broadcast.emit を呼んだ場合、
+        |   // 全クライアントにイベントを送信
+        |   socket.broadcast.emit('slide', message);
+
+    div(class='title')
+      h2 今度はクライアント側の実装
+      p スライド側はこんな感じ
+      pre
+        | var socket = io.connect('http://'+document.domain+':3000');
+        | // 接続後のイベント
+        | socket.on('connect', function(){
+        |   console.log('get connect');
+        | });
+        | // 切断後のイベント(再接続している)(サーバ再起動時に必要)
+        | socket.on('disconnect', function() {
+        |   console.log('get disconnect');
+        |   socket = io.connect('http://'+document.domain+':3000');
+        | });
+        | // 'slide' イベント受信時の処理
+        | socket.on('slide', function(message) {
+        |   console.log(message);
+        |   CSSslide.move(CSSslide.nowPage + (message == 'next' ? 1 : -1));
+        | });
+
+    div(class='title')
+      h2 今度はクライアント側の実装
+      p
+        | 'slide' イベントを受けて、ページをめくっているだけ
+        | クライアント側でも、受信は、socket.on
+      pre
+        | var socket = io.connect('http://'+document.domain+':3000');
+        | // 接続後のイベント
+        | socket.on('connect', function(){
+        |   console.log('get connect');
+        | });
+        | // 切断後のイベント(再接続している)
+        | socket.on('disconnect', function() {
+        |   console.log('get disconnect');
+        |   socket = io.connect('http://'+document.domain+':3000');
+        | });
+        | // 'slide' イベント受信時の処理
+        | socket.on('slide', function(message) {
+        |   console.log(message);
+        |   CSSslide.move(CSSslide.nowPage + (message == 'next' ? 1 : -1));
+        | });
+
+    div(class='title')
+      h2 今度はクライアント側の実装
+      p コントローラー側はこんな感じ
+      pre
+        | // 接続部分はスライド側と一緒なので省略
+        | // 'slide' イベント送信の処理
+        | $(function(){
+        |     $("#prev").click(function(){
+        |       socket.emit('slide', 'prev');
+        |     });
+        |     $("#next").click(function(){
+        |       socket.emit('slide', 'next');
+        |     });
+        | });
+
+    div(class='title')
+      h2 今度はクライアント側の実装
+      p こっちは、socket.emit でサーバにメッセージを送っている
+      pre
+        | // 接続部分はスライド側と一緒なので省略
+        | // 'slide' イベント送信の処理
+        | $(function(){
+        |     $("#prev").click(function(){
+        |       socket.emit('slide', 'prev');
+        |     });
+        |     $("#next").click(function(){
+        |       socket.emit('slide', 'next');
+        |     });
+        | });
+
+    div(class='title')
+      h2 おさらい
+      p サーバ側
+      ul
+        li socket.on   -> イベントの受信
+        li socket.emit -> イベントの送信
+        li socket.broadcast.emit -> イベントの送信(全体)
+
+    div(class='title')
+      h2 おさらい
+      p クライアント側
+      ul
+        li socket.on   -> イベントの受信
+        li socket.emit -> イベントの送信
+
+    div(class='title')
+      h2 そのほかの機能
+      ul
+        li クライアント毎のデータ保持
+        li ネームスペース
+        li 揮発性メッセージ
+        li 認証
+
+    div(class='title')
+      h2 クライアント毎のデータ保持
+      ul
+        li 
+
+

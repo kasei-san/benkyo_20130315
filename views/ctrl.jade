@@ -1,0 +1,41 @@
+!!!
+html(lang="ja")
+  head
+    meta(charset='UTF-8')
+    meta(name="viewport", content="width=320; minimum-scale=1.0; maximum-scale=2.0;")
+    script(src="./javascripts/jquery.js")
+    script(src="./javascripts/socket.io.js")
+    style(type='text/css')
+      div{
+        width: 100px;
+        height: 100px;
+        background-color: #CCC;
+        font-size:50px;
+        margin:10px;
+        display: inline-block;
+      }
+  script(type='text/javascript')
+    var socket = io.connect('http://'+document.domain+':3000');
+    // 接続後のイベント
+    socket.on('connect', function(){
+      console.log('get connect');
+    });
+    // 切断後のイベント(再接続している)
+    socket.on('disconnect', function() {
+      console.log('get disconnect');
+      socket = io.connect('http://'+document.domain+':3000');
+    });
+    // 'slide' イベント送信の処理
+    $(function(){
+        $("#prev").click(function(){
+          socket.emit('slide', 'prev');
+        });
+        $("#next").click(function(){
+          socket.emit('slide', 'next');
+        });
+    });
+  body
+    div(id="prev")
+      center <-
+    div(id="next")
+      center ->
