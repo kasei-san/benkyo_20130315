@@ -21,7 +21,11 @@ html(lang="ja")
       // 'slide' イベント受信時の処理
       socket.on('slide', function(message) {
         console.log(message);
-        CSSslide.move(CSSslide.nowPage + (message == 'next' ? 1 : -1));
+        if(message == 'next' || message == 'prev'){
+          CSSslide.move(CSSslide.nowPage + (message == 'next' ? 1 : -1));
+        }else{
+          $(window).scrollTop($(window).height());
+        }
       });
   body
     div
@@ -428,8 +432,137 @@ html(lang="ja")
         li 認証
 
     div(class='title')
+      h2 そのほかの機能
+      ul
+        li(style="color:#F00") クライアント毎のデータ保持
+        li ネームスペース
+        li 揮発性メッセージ
+        li 認証
+
+    div(class='title')
       h2 クライアント毎のデータ保持
       ul
-        li 
+        li soket.set('key', value) -> データの保持
+        li soket.get('key') -> データの取得
+
+    div(class='title')
+      h2 クライアント毎のデータ保持
+      p
+        | 単体だと役に立たないが、設定で格納先をKVSやDBにできる
+        | 複数プロセス、複数マシン間で共有できる
+        | 複数台構成になった時に便利
+
+    div(class='title')
+      h2 そのほかの機能
+      ul
+        li クライアント毎のデータ保持
+        li(style="color:#F00") ネームスペース
+        li 揮発性メッセージ
+        li 認証
+
+    div(class='title')
+      h2 ネームスペース
+      p 任意のグループにのみメッセージを送信
+
+    div(class='title')
+      h2 ネームスペース
+      p サーバ側
+      pre
+        | var io = require('socket.io').listen(3000);
+        | // 通常の接続
+        | io.sockets.on('connection', ...
+        | // namespace 'test' の接続
+        | io.of('/test').on('connection', ...
+
+    div(class='title')
+      h2 ネームスペース
+      p クライアント側
+      pre
+        | // 通常の接続
+        | var socket = io.connect('http://'+document.domain+':3000');
+        | // /test に接続することで、namespace test に接続する
+        | var socket_test = io.connect('http://'+document.domain+':3000/test');
+
+    div(class='title')
+      h2 ネームスペース
+      p
+        | 上記だけだと役に立たないが、
+        | クライアント側のnamespaceを動的に設定することで、
+        | 特定のユーザとだけ、メッセージの送受信が可能
+        | プライベートチャットとか、ゲームでチーム毎のやりとりとか
+
+    div(class='title')
+      h2 そのほかの機能
+      ul
+        li クライアント毎のデータ保持
+        li ネームスペース
+        li(style="color:#F00") 揮発性メッセージ
+        li 認証
+
+    div(class='title')
+      h2 揮発性メッセージ
+      p
+        | Soeket.IO は送信に失敗するとリトライする
+        | 重要度が高くないメッセージについては、
+        | リトライしないようにできる
+
+    div(class='title')
+      h2 揮発性メッセージ
+      p emit の前に volatile をつけるだけ
+      pre
+        | socket.volatile.emit('slide', message); 
+        | socket.volatile.broadcast.emit('slide', message); 
+
+    div(class='title')
+      h2 そのほかの機能
+      ul
+        li クライアント毎のデータ保持
+        li ネームスペース
+        li 揮発性メッセージ
+        li(style="color:#F00")  認証
+
+    div(class='title')
+      h2 認証
+      p
+        | 接続前のハンドシェイク時の情報を見て、
+        | 認証処理を挟むことができる
+
+    div(class='title')
+      h2 認証
+      pre
+        | io.configure(function (){
+        |   io.set('authorization', function (handshakeData, callback) {
+        |     // 認証処理を実装する
+        |     callback(null, true);       // 認証成功
+        |     callback(errorObj, false);  // 認証失敗
+        |   });
+        | });
+
+    div(class='title')
+      h2 認証
+      p handshakeData の中身
+      pre
+        | {
+        |    headers: req.headers       // <Object> the headers of the request
+        |  , time: (new Date) +''       // <String> date time of the connection
+        |  , address: socket.address()  // <Object> remoteAddress and remotePort object
+        |  , xdomain: !!headers.origin  // <Boolean> was it a cross domain request?
+        |  , secure: socket.secure      // <Boolean> https connection
+        |  , issued: +date              // <Number> EPOCH of when the handshake was created
+        |  , url: request.url          // <String> the entrance path of the request
+        |  , query: data.query          // <Object> the result of url.parse().query or a empty object
+        | }
+
+    div(class='title')
+      h2 認証
+      p
+        | 基本的には生で使うより、
+        | この仕組を使った認証用ライブラリを使う
+
+
+
+
+
+
 
 

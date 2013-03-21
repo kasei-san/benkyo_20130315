@@ -33,9 +33,14 @@ html(lang="ja")
         $("#next").click(function(){
           socket.emit('slide', 'next');
         });
+        $("#down").click(function(){
+          socket.emit('slide', 'down');
+        });
     });
   body
     div(id="prev")
       center <-
+    div(id="down")
+      center ↓
     div(id="next")
       center ->
