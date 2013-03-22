@@ -1,0 +1,73 @@
+<html>
+<head>
+<meta charset="utf-8">
+<script src="/javascripts/jquery.js"></script>
+<script src="/javascripts/socket.io.js"></script>
+<script>
+  var X_MAX=640;
+  var Y_MAX=480;
+  var BALL_SIZE=20;
+  var PI_2 = Math.PI * 2;
+
+  Field = function(id){
+    this.canvas = document.getElementById(id);
+    this.ctx = this.canvas.getContext("2d");
+    this.ballCanvas   = this.makeBallCanvas();
+    this.clear();
+  }
+
+  Field.prototype = {
+    clear : function(){
+      this.ctx.fillStyle = "#000";
+      this.ctx.fillRect(0,0,X_MAX,Y_MAX);
+    },
+    draw : function(data){
+      this.clear();
+      this.drawBall(data.ball.x - 0, data.ball.y - 0);
+    },
+    drawBall : function(x, y){
+      this.ctx.drawImage(this.ballCanvas, x, y);
+    },
+    makeBallCanvas : function(){
+      // ボールを一旦置いとくcanvasを用意
+      var ballCanvas = document.createElement('canvas');
+      ballCanvas.setAttribute('width',  BALL_SIZE*2);
+      ballCanvas.setAttribute('height', BALL_SIZE*2);
+      var ctx = ballCanvas.getContext("2d");
+
+      // ボールのサイズのグラデーションを描画
+      var gradObj = ctx.createRadialGradient(BALL_SIZE, BALL_SIZE, 0, BALL_SIZE, BALL_SIZE, BALL_SIZE)
+      gradObj.addColorStop(0, "rgb(255, 255, 255)");
+      gradObj.addColorStop(1, "#000000");
+
+      // グラデーションを背景に円を描画
+      ctx.fillStyle = gradObj;
+      ctx.beginPath();
+      ctx.arc(BALL_SIZE, BALL_SIZE, BALL_SIZE, 0, PI_2, true );
+      ctx.closePath();
+      ctx.fill();
+      return ballCanvas;
+    },
+  };
+
+  $(function(){
+    var field = new Field("field");
+    var socket = io.connect('http://'+document.domain+':3001');
+    socket.on('connect', function(){
+      console.log('get connect');
+    });
+    socket.on('disconnect', function() {
+      console.log('get disconnect');
+      socket = io.connect('http://'+document.domain+':3000');
+    });
+    socket.on('data', function(data){
+      field.draw(data);
+    });
+  });
+</script>
+</head>
+<body>
+  <canvas id="field" width="640", height="480"></canvas>
+  <div id="message"></div>
+</body>
+</html>

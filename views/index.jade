@@ -4,7 +4,7 @@ html(lang="ja")
     meta(charset='UTF-8')
     title node.js で WebSoket 実装
     include ../public/CSSslide.css
-    include ../public/javascripts/CSSslide.js
+    # include ../public/javascripts/CSSslide.js
     script(src="./javascripts/jquery.js")
     script(src="./javascripts/socket.io.js")
     script(type='text/javascript')
@@ -176,14 +176,14 @@ html(lang="ja")
       h2 双方向通信できると何が良いの?
       p 今までサーバ側の更新を取得するには、クライアント側から通信が必要だった
       p なので、リアルタイムにサーバ側の更新を取得しようとすると、
-      ui
+      ul
         li 何度も無駄なアクセスをすることに
         li それでも、リアルタイム性は高くない
 
     div(class='title')
       h2 双方向通信できると何が良いの?
       p 更新があった時にサーバ側からデータをpush出来れば、
-      ui
+      ul
         li 無駄が少ない
         li リアルタイム性が高い
 
@@ -448,9 +448,9 @@ html(lang="ja")
     div(class='title')
       h2 クライアント毎のデータ保持
       p
-        | 単体だと役に立たないが、設定で格納先をKVSやDBにできる
-        | 複数プロセス、複数マシン間で共有できる
-        | 複数台構成になった時に便利
+        | 単体だと役に立たないが、設定で格納先をKVSやDBにできる<br>
+        | 複数プロセス、複数マシン間で共有できる<br>
+        | 複数台構成になった時に便利<br>
 
     div(class='title')
       h2 そのほかの機能
@@ -486,9 +486,9 @@ html(lang="ja")
     div(class='title')
       h2 ネームスペース
       p
-        | 上記だけだと役に立たないが、
-        | クライアント側のnamespaceを動的に設定することで、
-        | 特定のユーザとだけ、メッセージの送受信が可能
+        | 上記だけだと役に立たないが、<br>
+        | クライアント側のnamespaceを動的に設定することで、<br>
+        | 特定のユーザとだけ、メッセージの送受信が可能<br>
         | プライベートチャットとか、ゲームでチーム毎のやりとりとか
 
     div(class='title')
@@ -502,9 +502,9 @@ html(lang="ja")
     div(class='title')
       h2 揮発性メッセージ
       p
-        | Soeket.IO は送信に失敗するとリトライする
-        | 重要度が高くないメッセージについては、
-        | リトライしないようにできる
+        | Soeket.IO は送信に失敗するとリトライする<br>
+        | 重要度が高くないメッセージについては、<br>
+        | リトライしないようにできる<br>
 
     div(class='title')
       h2 揮発性メッセージ
@@ -582,7 +582,7 @@ html(lang="ja")
       p 使い道
       ul
         li
-          | コミュニケーションとか、ゲームとかエンタメ系のイメージがあるけど
+          | コミュニケーションとか、ゲームとかエンタメ系のイメージがあるけど<br>
           | 実は業務目的にも色々使い道がありそう
         li ログや、グラフのリアルタイム出力とか
 
